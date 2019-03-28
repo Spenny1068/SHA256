@@ -1,0 +1,10 @@
+# directory with reference code
+/refCode/
+
+# .swp files
+*.swp
+*.swo
+
+# vim temporary files
+*~
+
