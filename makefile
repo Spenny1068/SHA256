@@ -1,7 +1,3 @@
-#MAKEFILE FOR MULTIPLE FILES
-
-# Use this for a program main.cpp which uses both sha256 and sha256 modules
-
 # the compiler: gcc or g++
 CC = g++
 
@@ -16,8 +12,6 @@ default: run
 # to create the executable file 'main' we need the object files
 run: main.o sha256.o
 	$(CC) $(CFLAGS) -o main main.o sha256.o; ./main
-
-# create the object files from the source files
 
 # create main.o
 main.o: main.cpp sha256.h

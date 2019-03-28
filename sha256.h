@@ -14,7 +14,7 @@ public:
 	//SHA256();	// default constructor
 	void init();	// initialize with H^(0) hash values 
 	std::vector<std::string> prepare(std::string msg);		// prepare the message with sha256 padding
-	void loop(std::vector<std::string> V, bool debug) ;	// main loop for hash computation
+	void loop(std::vector<std::string> V, bool itm, bool debug) ;	// main loop for hash computation
 };
 
 std::vector<std::string> sha256(std::string msg);	// main sha256 function

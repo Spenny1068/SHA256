@@ -31,14 +31,14 @@ const unsigned int SHA256::sha_K[64] =
 // The initial hash value is 32-bit words obtained by taking the fractional parts of the 
 // square roots of the first eight primes
 void SHA256::init() {
-	sha_H[0] = 0x6a09e667;
-	sha_H[1] = 0xbb67ae85;
-	sha_H[2] = 0x3c6ef372;
-	sha_H[3] = 0xa54ff53a;
-	sha_H[4] = 0x510e527f;
-	sha_H[5] = 0x9b05688c;
-	sha_H[6] = 0x1f83d9ab;
-	sha_H[7] = 0x5be0cd19;
+	sha_H[0] = 0x6a09e667;	// register a
+	sha_H[1] = 0xbb67ae85;	// register b
+	sha_H[2] = 0x3c6ef372;	// register c
+	sha_H[3] = 0xa54ff53a;	// register d
+	sha_H[4] = 0x510e527f;	// register e
+	sha_H[5] = 0x9b05688c;	// register f
+	sha_H[6] = 0x1f83d9ab;	// register g
+	sha_H[7] = 0x5be0cd19;	// register h
 	
 	std::cout << "init: " << std::hex << sha_H[0] << " "
 						       << std::hex << sha_H[1] << " "
@@ -95,10 +95,10 @@ std::vector<std::string> SHA256::prepare(std::string msg) {
 
 
 // Hash computation
-void SHA256::loop(std::vector<std::string> V, bool debug) {
+void SHA256::loop(std::vector<std::string> V, bool itm, bool debug) {
 
 	int N = V.size();
-	unsigned int temp = 0;
+	unsigned int temp, T1, T2 = 0;
 	const int WORD = 32;
 	
 
@@ -117,31 +117,67 @@ void SHA256::loop(std::vector<std::string> V, bool debug) {
 				// convert 32-bit word from padded message to integer
 				std::string W = V[0].substr(j * WORD, WORD);
 				temp = stoi(W, nullptr, 2);
-				std::cout << "temp: " << temp << std::endl;
 			}
 
 			// pre calculations
 			unsigned int chEFG = SHA256_ch(sha_H[4], sha_H[5], sha_H[6]);	
-			//int majABC = SHA256_maj(sha_H[0], sha_H[1], sha_H[2]);
-			//int e0A = SHA256_e0(sha_H[0]);
-			unsigned int e1E = SHA256_e1(sha_H[4]);
-			unsigned int T1 = sha_H[7] + e1E + chEFG + sha_K[j] + temp;
-			//int T2 = e0A + majABC;
+			int majABC = SHA256_maj(sha_H[0], sha_H[1], sha_H[2]);
+			int e0A = SHA256_e0(sha_H[0]);
+			int e1E = SHA256_e1(sha_H[4]);
 
+			/* T1 = h + e1(e) + ch(e, f, g) + Kj + Wj */
+			T1 = sha_H[7] + e1E + chEFG + sha_K[j] + temp;
 
-			// e = d + T1
+			/* T2 = e0(a) + maj(a, b, c) */
+			T2 = e0A + majABC;
+
+			/* h = g */
+			sha_H[7] = sha_H[6];
+
+			/* g = f */
+			sha_H[6] = sha_H[5];
+
+			/* f = e */
+			sha_H[5] = sha_H[4];
+
+			/* e = d + T1 */
 			sha_H[4] = sha_H[3] + T1;
 
-			// print out intermediate values
+			/* d = c */
+			sha_H[3] = sha_H[2];
+
+			/* c = b */
+			sha_H[2] = sha_H[1];
+
+			/* b = a */
+			sha_H[1] = sha_H[0];	
+
+			/* a = T1 + T2 */
+			sha_H[0] = T1 + T2;
+
+
+			// print out debug values for each iteration
 			if (debug) {
-				std::cout << "t = " << std::dec << j << ": " << std::hex << sha_H[0] << " "
-																			<< std::hex << sha_H[1] << " "
-																			<< std::hex << sha_H[2] << " "
-																			<< std::hex << sha_H[3] << " "
-																			<< std::hex << sha_H[4] << " "
-																			<< std::hex << sha_H[5] << " "
-																			<< std::hex << sha_H[6] << " "
-																			<< std::hex << sha_H[7] << " ";
+				std::cout << "W[" << std::dec << j << "]: " << std::hex << temp << ", ";
+				std::cout << "K[" << std::dec << j << "]: " << std::hex << sha_K[j] << ", ";
+				std::cout << "chEFG: " << std::hex << chEFG << ", ";
+				std::cout << "e1E: " << std::hex << e1E << ", ";
+				std::cout << "T1: " << std::hex << T1 << ", ";
+				//std::cout << "T2" << std::hex << T2 << ", ";
+				std::cout << "\n";
+			}
+
+			// print out intermediate values for each iteration
+			if (itm) {
+				std::cout << "t = " << std::dec << j << ": " 
+					      			  << std::hex << sha_H[0] << " "
+										  << std::hex << sha_H[1] << " "
+										  << std::hex << sha_H[2] << " "
+										  << std::hex << sha_H[3] << " "
+										  << std::hex << sha_H[4] << " "
+										  << std::hex << sha_H[5] << " "
+										  << std::hex << sha_H[6] << " "
+										  << std::hex << sha_H[7] << " ";
 				std::cout << "\n";
 			}
 		}
@@ -157,8 +193,8 @@ std::vector<std::string> sha256(std::string msg) {
 	// prepare message with sha256 padding
 	std::vector<std::string> preparedMsg = ob.prepare(msg);
 
-	// compute hash
-	ob.loop(preparedMsg, false); 
+	// compute hash(intermediate, debug)
+	ob.loop(preparedMsg, true, false); 
 	// return sha256(msg)
 	return preparedMsg;
 }
