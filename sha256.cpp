@@ -30,7 +30,7 @@ unsigned int SHA256::sha_IH[8] =
 
 
 // initialize registers a, b, c, d, e, f, g, h with the (i-1) intermediate hash value
-void SHA256::init(int blocks) {
+inline void SHA256::init(int blocks) {
 	sha_R[0] = sha_IH[0];		// register a
 	sha_R[1] = sha_IH[1];		// register b
 	sha_R[2] = sha_IH[2];		// register c
@@ -57,7 +57,7 @@ void SHA256::init(int blocks) {
 
 
 // Preprocessing: Prepare the message by padding the message
-std::vector<std::string> SHA256::prepare(std::string msg) {
+inline std::vector<std::string> SHA256::prepare(std::string msg) {
 
 	std::string paddedStr = "";
 	std::vector<std::string> vec;
@@ -78,9 +78,8 @@ std::vector<std::string> SHA256::prepare(std::string msg) {
 	// append k zero bits, where k is the smallest non-neg solution to l + 1 + k = 448 mod 512
 	int k = (448 % 512) - (l + 1);
 
-	//FIXME
-	//I think this will break if message is > 1024 bits
-	if (k <= 0) { k = (512 - paddedStr.length()) + 448; }
+	//FIXME -> only works for 6 blocks or less
+	if (k <= 0) { k = 512 * (paddedStr.length() / 448) - paddedStr.length() + 448; }
 	std::string zeros(k, '0');
 	paddedStr += zeros;
 
@@ -104,19 +103,17 @@ std::string SHA256::loop(std::vector<std::string> V) {
 	std::string sha256_hash = "";
 
 	// for i = 1 to (number of blocks in the padded message)
-	for (unsigned int i = 1; i <= V.size(); i++) {
-
-		// initialize registers a-h with (i-1)th intermediate hash value
-		init(i);
-
-		for(int j = 0; j < 64; j++) {
-
-			// update registers h
-			update_reg(i, j, V);
-
+	for (unsigned int i = 1; i <= V.size(); i++) 
+	{
+		init(i);		// initialize registers a-h with (i-1)th intermediate hash value
+		for(int j = 0; j < 64; j++) 
+		{
+			update_reg(i, j, V);		// update registers h
 		}
 
 	std::cout << "\n";
+	inter_hash();	// compute the ith intermediate hash value
+
 	}
 
 	// construct the full hash of the message
@@ -129,7 +126,7 @@ std::string SHA256::loop(std::vector<std::string> V) {
 }
 
 // apply SHA-256 compression function to update registers a-h
-void SHA256::update_reg(int i, int j, std::vector<std::string> vec) {
+inline void SHA256::update_reg(int i, int j, std::vector<std::string> vec) {
 
 	int W, T1, T2 = 0;
 	const int WORD = 32;
@@ -201,7 +198,7 @@ void SHA256::update_reg(int i, int j, std::vector<std::string> vec) {
 }
 
 // calculate intermediate hashes
-void SHA256::inter_hash() {
+inline void SHA256::inter_hash() {
 
 	// compute the ith intermediate hash values
 	
@@ -245,7 +242,7 @@ std::string sha256(std::string msg, bool debug_) {
 }
 
 // converts a hex integer to hex string
-std::string SHA256::int_to_string(unsigned int n) {
+inline std::string SHA256::int_to_string(unsigned int n) {
 	std::stringstream ss;
 	ss << std::hex << n;
 	std::string hex_str(ss.str());

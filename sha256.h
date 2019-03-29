@@ -13,8 +13,7 @@ private:
 	unsigned int sha_W[64];						// Expanded message blocks
 
 public:
-	//SHA256();		// default constructor
-	bool debug;																	// prints intermediate values
+	bool debug;																	// print intermediate values if true
 	std::vector<std::string> prepare(std::string msg);				// sha256 padding
 	void init(int blocks);													// initialize registers 
 	std::string loop(std::vector<std::string> V);					// hash computation
