@@ -1,19 +1,14 @@
 #include "sha256.h"
 #include <iostream>
-#include <string>
 using namespace std;
-
 
 int main(void) {
 
-	string msg = "abc";
-	vector<string> hash = sha256(msg);
+	string msg = "";
 
-	cout << "sha256(" << msg << ")=";
-	for (unsigned int i = 0; i < hash.size(); i++) {
-		cout << hash[i];	
-	}
-	cout << endl;
+	cout << "Enter string: ";
+	cin >> msg;
+	cout << "sha256(" << msg << "): " << sha256(msg, false) << endl;
 
 	return 0;	
 }
